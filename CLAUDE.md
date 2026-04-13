@@ -10,7 +10,7 @@ Windows desktop app (Tauri 2 + React + Mantine) for a manufacturing workshop to 
 
 ## Current State
 
-**Backend complete. Frontend not started.** 9/21 plan tasks done.
+**Backend complete. Frontend in progress.** 17/21 plan tasks done. Tasks 17–18 and 20 gated on auto-update signing keys + real GitHub repo URL.
 
 | Task | Status | Commit |
 |---|---|---|
@@ -23,8 +23,18 @@ Windows desktop app (Tauri 2 + React + Mantine) for a manufacturing workshop to 
 | 6: Proposal storage + filter + history + prefill | ✅ | `c60667a` |
 | 7: Settings + backup storage | ✅ | `7413e3b` |
 | 8: Commands + Tauri wiring | ✅ | `3e127ba` |
-| 9: Frontend types + API client + i18n | ⏸ next | — |
-| 10–20 | pending | — |
+| 9: Frontend types + API client + i18n | ✅ | `1a04d3b` |
+| 10: Dynamic schema and form components | ✅ | `09a0bf9` |
+| 11: App shell, routing, Zustand stores | ✅ | `6fdd1a6` |
+| 12: Parameters screen | ✅ | `99d9362` |
+| 13: Customers screens | ✅ | `39a277d` |
+| 14: Proposal list with filters | ✅ | `e928dfd` |
+| 15: Proposal dynamic form with prefill | ✅ | `20bd136` |
+| 16: Dashboard, Backup, Settings screens | ✅ | `126155f` |
+| 17: Auto-update integration | ⏸ blocked | needs signing key + repo URL |
+| 18: Release pipeline | ⏸ blocked | depends on Task 17 |
+| 19: Unsaved guard + Ctrl+N shortcut | ✅ | `37a8370` |
+| 20: Final smoke test + first release | ⏸ blocked | depends on Tasks 17–18 |
 
 **Tests:** 22/22 passing (`cargo test` from `src-tauri/`). No frontend tests yet.
 
@@ -78,9 +88,14 @@ fikstur_teklif_asistani/
 │   │   └── commands/             # 24 #[tauri::command] fns (5 modules)
 │   ├── Cargo.toml                # deps per spec §3
 │   └── tauri.conf.json
-├── src/                          # Frontend (TEMPLATE ONLY, needs Task 9+)
-│   ├── main.tsx                  # still Tauri template boilerplate
-│   └── App.tsx                   # still Tauri template boilerplate
+├── src/                          # Frontend (Tasks 9–13 done, 14+ pending)
+│   ├── main.tsx                  # app entry, Mantine + Router providers
+│   ├── App.tsx                   # shell layout + route table
+│   ├── types.ts                  # TS mirrors of Rust models
+│   ├── lib/                      # api client, error translation, i18n (tr.ts)
+│   ├── stores/                   # zustand stores (parameters, customers, etc.)
+│   ├── components/               # ParameterForm + dynamic form engine
+│   └── routes/                   # Parameters, Customers/{List,Form,Detail}, Proposals/* (stubs)
 ├── package.json                  # all Mantine/react-hook-form/zod/dnd-kit deps installed
 ├── docs/                         # NEVER TOUCH unless asked
 │   ├── kullanici-plani.md
@@ -93,7 +108,7 @@ fikstur_teklif_asistani/
 
 ### What exists in `src/` right now
 
-Only the default `create-tauri-app` template (`main.tsx` calls `invoke("greet", ...)`). The Tauri `greet` command was removed from `lib.rs` in Task 8, so the template will error at runtime if you `npm run tauri dev`. This is expected — Task 9 replaces `main.tsx` and related files.
+Frontend is feature-complete except auto-update (Tasks 9–16, 19 done): typed api client, error translation, Turkish i18n, dynamic form engine, app shell with Mantine + routing + zustand stores, Parameters screen, Customers screens, Proposals list with filters, dynamic proposal form with prefill, Dashboard, Backup, Settings, UnsavedGuard on both forms, and Ctrl+N shortcut. Only Task 17 (updater wiring) and Task 18 (release CI) are missing — both gated on signing key generation and the real GitHub repo URL.
 
 ## Data Model Quick Reference
 
@@ -124,7 +139,7 @@ All return `Result<T, AppError>`. `AppError` is `#[serde(tag = "kind")]` tagged 
 
 ## Resuming Work
 
-1. **Read:** `docs/superpowers/plans/2026-04-13-phase1-desktop-app.md`, starting at **Task 9: Frontend types and API client**.
+1. **Read:** `docs/superpowers/plans/2026-04-13-phase1-desktop-app.md`, starting at **Task 17: Auto-update integration**. Requires the user to first run `npx @tauri-apps/cli signer generate -w ~/.tauri/fikstur.key` and provide the public key + GitHub repo path before you can fill in `tauri.conf.json`.
 2. **Execution model:** subagent-driven. Dispatch a fresh `general-purpose` agent per task using the implementer prompt template at `C:/Users/Tolga/.claude/plugins/cache/claude-plugins-official/superpowers/5.0.7/skills/subagent-driven-development/implementer-prompt.md`. Include the full task text from the plan in the prompt — do NOT make the subagent read the plan file.
 3. **After every subagent finishes:** main session runs `git -c user.email=... -c user.name="..." commit -m "..."`. Don't delegate commits.
 4. **Tests:** run `cargo test` (backend) or `npm test` (frontend — not yet scaffolded) after each task. Must be green before commit.
@@ -153,6 +168,8 @@ cd "D:/Projects/fikstur_teklif_asistani" && git log --oneline
 4. **`zip` crate type annotation** (Task 7) — plan specified `FileOptions<'_, ()>` but zip 0.6.6 has no generics; changed to bare `FileOptions`.
 5. **`if let Ok(p): Result<Proposal, _>` type ascription** (Task 6) — invalid Rust syntax in plan; subagent replaced with a `match` block. Semantics identical.
 6. **`list` function shadowed by local variable** (Task 6 test) — subagent renamed local to `listed`.
+7. **`@tauri-apps/plugin-dialog` installed during Task 16** — plan didn't list it as a Task 9 dependency but Backup and Settings screens import `open` from it. Added via `npm install`; Task 17 plan re-lists it but the install had already happened.
+8. **Task 15 resolver type cast** — `FormValues` is wider than the zod schema's inferred type (extended with `Record<string, unknown>` for dynamic fields), so `resolver: zodResolver(fullSchema) as never` is used to bridge the two. Functionally equivalent; zod still validates at runtime.
 
 All deviations are documented in commit messages or subagent reports. None changed spec semantics.
 
