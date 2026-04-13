@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(export PATH=\"/c/Users/Tolga/.cargo/bin:$PATH\")",
+      "Bash(export CARGO_TARGET_DIR=\"C:/Windows/Temp/fikstur_teklif_cargo\")",
+      "Bash(mkdir -p \"/c/Windows/Temp/fikstur_teklif_cargo\")",
+      "Bash(cargo check:*)",
+      "Bash(rustc --version)",
+      "Read(//c/Users/Tolga/.cargo/bin//**)",
+      "Bash(npm run:*)",
+      "Bash(powershell.exe -Command \"Get-MpComputerStatus | Select-Object SmartAppControlState, IsTamperProtected 2>&1\")",
+      "Bash(rm -rf \"/c/Windows/Temp/fikstur_teklif_cargo\")",
+      "Bash(rm -rf \"/c/Users/Tolga/.cargo-target/fikstur_teklif\")",
+      "Bash(git init:*)",
+      "Bash(git add:*)",
+      "Bash(git -c user.email=\"dev@fikstur.local\" -c user.name=\"Fikstur Dev\" commit -m \"chore: scaffold tauri + react + deps\")"
+    ]
+  }
+}
