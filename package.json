@@ -24,6 +24,7 @@
     "@mantine/notifications": "^9.0.1",
     "@tabler/icons-react": "^3.41.1",
     "@tauri-apps/api": "^2",
+    "@tauri-apps/plugin-dialog": "^2.7.0",
     "@tauri-apps/plugin-opener": "^2",
     "dayjs": "^1.11.20",
     "react": "^19.1.0",
