@@ -10,6 +10,7 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { api } from "../../lib/api";
 import { buildZodSchema } from "../../lib/schema";
 import { DynamicField } from "../../components/DynamicField";
+import { UnsavedGuard } from "../../components/UnsavedGuard";
 import { showError, showSuccess } from "../../lib/errors";
 import { tr } from "../../lib/i18n/tr";
 import { useParameters } from "../../stores/parameters";
@@ -51,7 +52,7 @@ export function ProposalForm() {
 
   type FormValues = z.infer<typeof coreSchema> & Record<string, unknown>;
 
-  const { handleSubmit, control, reset, watch, setValue } = useForm<FormValues>({
+  const { handleSubmit, control, reset, watch, setValue, formState: { isDirty } } = useForm<FormValues>({
     resolver: zodResolver(fullSchema) as never,
     defaultValues: {
       customer_id: search.get("customer") ?? "",
@@ -123,6 +124,7 @@ export function ProposalForm() {
 
   return (
     <Stack>
+      <UnsavedGuard dirty={isDirty} />
       <Title order={2}>
         {id ? tr.proposal.editTitle : tr.proposal.newTitle}
       </Title>

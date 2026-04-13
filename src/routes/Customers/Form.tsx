@@ -5,6 +5,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { api } from "../../lib/api";
 import { showError, showSuccess } from "../../lib/errors";
 import { tr } from "../../lib/i18n/tr";
+import { UnsavedGuard } from "../../components/UnsavedGuard";
 import type { CustomerInput } from "../../types";
 
 const empty: CustomerInput = {
@@ -49,6 +50,7 @@ export function CustomerForm() {
 
   return (
     <Stack>
+      <UnsavedGuard dirty={form.isDirty()} />
       <Title order={2}>
         {id ? tr.customer.editTitle : tr.customer.newTitle}
       </Title>
