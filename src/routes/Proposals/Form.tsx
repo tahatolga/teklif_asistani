@@ -52,7 +52,7 @@ export function ProposalForm() {
 
   type FormValues = z.infer<typeof coreSchema> & Record<string, unknown>;
 
-  const { handleSubmit, control, reset, watch, setValue, formState: { isDirty } } = useForm<FormValues>({
+  const { handleSubmit, control, reset, watch, setValue, getValues, formState: { isDirty } } = useForm<FormValues>({
     resolver: zodResolver(fullSchema) as never,
     defaultValues: {
       customer_id: search.get("customer") ?? "",
@@ -118,6 +118,7 @@ export function ProposalForm() {
       if (id) await api.updateProposal(id, input);
       else await api.createProposal(input);
       showSuccess("Kaydedildi");
+      reset(getValues());
       nav("/proposals");
     } catch (err) { showError(err); }
   });

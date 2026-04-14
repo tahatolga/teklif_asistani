@@ -43,6 +43,7 @@ export function CustomerForm() {
         await api.createCustomer(values);
       }
       showSuccess("Kaydedildi");
+      form.resetDirty();
       nav("/customers");
     } catch (err) { showError(err); }
     finally { setLoading(false); }
