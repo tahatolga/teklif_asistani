@@ -1,7 +1,62 @@
 use crate::error::{AppError, AppResult};
-use crate::models::parameter::{Parameter, ParameterCatalog};
+use crate::models::parameter::{Parameter, ParameterCatalog, ParameterType};
 use crate::state::AppState;
 use tauri::State;
+
+fn titlecase(key: &str) -> String {
+    let mut out = String::with_capacity(key.len());
+    let mut capitalize = true;
+    for ch in key.chars() {
+        if ch == '_' || ch == '-' {
+            out.push(' ');
+            capitalize = true;
+        } else if capitalize {
+            out.extend(ch.to_uppercase());
+            capitalize = false;
+        } else {
+            out.push(ch);
+        }
+    }
+    out
+}
+
+#[tauri::command]
+pub fn ensure_parameter(
+    state: State<'_, AppState>,
+    key: String,
+) -> AppResult<ParameterCatalog> {
+    let _w = state.write_lock.lock().unwrap();
+    state.with_paths(|p| {
+        let trimmed = key.trim();
+        if trimmed.is_empty() {
+            return Err(AppError::Validation {
+                field: "key".into(),
+                message: "Anahtar gerekli".into(),
+            });
+        }
+        let mut cat = crate::storage::parameters::load(p)?;
+        if cat.parameters.iter().any(|x| x.key == trimmed) {
+            return Ok(cat);
+        }
+        let next_order = cat.parameters.iter().map(|p| p.order).max().unwrap_or(0) + 1;
+        cat.parameters.push(Parameter {
+            key: trimmed.to_string(),
+            label: titlecase(trimmed),
+            description: String::new(),
+            parameter_type: ParameterType::Text,
+            options: vec![],
+            unit: None,
+            min: None,
+            max: None,
+            max_length: None,
+            required: false,
+            order: next_order,
+        });
+        cat.updated_at = chrono::Utc::now();
+        crate::storage::parameters::save(p, &cat)?;
+        Ok(cat)
+    })
+}
 
 #[tauri::command]
 pub fn get_parameters(state: State<'_, AppState>) -> AppResult<ParameterCatalog> {

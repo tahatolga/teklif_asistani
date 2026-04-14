@@ -1,4 +1,4 @@
-import { Badge, Button, Group, Paper, Stack, Table, Text, Title } from "@mantine/core";
+import { Button, Group, Paper, Stack, Table, Text, Title } from "@mantine/core";
 import { IconPlus } from "@tabler/icons-react";
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -52,25 +52,21 @@ export function CustomerDetail() {
       <Table highlightOnHover>
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>{tr.proposal.createdAt}</Table.Th>
+            <Table.Th>Son Güncelleme</Table.Th>
             <Table.Th>{tr.proposal.title}</Table.Th>
-            <Table.Th>{tr.proposal.status}</Table.Th>
-            <Table.Th>{tr.proposal.total}</Table.Th>
+            <Table.Th>Etkileşim</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
           {proposals.map((p) => (
             <Table.Tr key={p.id}>
-              <Table.Td>{new Date(p.created_at).toLocaleDateString("tr-TR")}</Table.Td>
               <Table.Td>
-                <Link to={`/proposals/${p.id}`}>{p.title}</Link>
+                {new Date(p.updated_at).toLocaleDateString("tr-TR")}
               </Table.Td>
               <Table.Td>
-                <Badge>{tr.proposal.statuses[p.status]}</Badge>
+                <Link to={`/proposals/${p.id}/view`}>{p.title}</Link>
               </Table.Td>
-              <Table.Td>
-                {p.total_amount.toLocaleString("tr-TR")} {p.currency}
-              </Table.Td>
+              <Table.Td>{p.interaction_count}</Table.Td>
             </Table.Tr>
           ))}
         </Table.Tbody>

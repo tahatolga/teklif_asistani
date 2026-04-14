@@ -8,6 +8,7 @@ interface ParametersStore {
   upsert: (param: Parameter) => Promise<void>;
   remove: (key: string) => Promise<void>;
   reorder: (keys: string[]) => Promise<void>;
+  ensure: (key: string) => Promise<void>;
 }
 
 export const useParameters = create<ParametersStore>((set) => ({
@@ -16,4 +17,5 @@ export const useParameters = create<ParametersStore>((set) => ({
   upsert: async (param) => set({ catalog: await api.upsertParameter(param) }),
   remove: async (key) => set({ catalog: await api.deleteParameter(key) }),
   reorder: async (keys) => set({ catalog: await api.reorderParameters(keys) }),
+  ensure: async (key) => set({ catalog: await api.ensureParameter(key) }),
 }));

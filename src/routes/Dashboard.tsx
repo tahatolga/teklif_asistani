@@ -1,4 +1,4 @@
-import { Card, SimpleGrid, Stack, Table, Text, Title, Badge } from "@mantine/core";
+import { Card, SimpleGrid, Stack, Table, Text, Title } from "@mantine/core";
 import { Link } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
@@ -30,11 +30,6 @@ export function Dashboard() {
     return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   }).length;
 
-  const won = recent.filter((p) => p.status === "kazanildi").length;
-  const decided = recent.filter((p) =>
-    p.status === "kazanildi" || p.status === "kaybedildi").length;
-  const winRate = decided > 0 ? Math.round((won / decided) * 100) : 0;
-
   if (!info) return <Text>{tr.common.loading}</Text>;
 
   if (info.proposal_count === 0 && info.customer_count === 0) {
@@ -54,11 +49,10 @@ export function Dashboard() {
   return (
     <Stack>
       <Title order={2}>{tr.nav.dashboard}</Title>
-      <SimpleGrid cols={4}>
+      <SimpleGrid cols={3}>
         <StatCard label={tr.customer.plural} value={info.customer_count} />
         <StatCard label={tr.proposal.plural} value={info.proposal_count} />
         <StatCard label="Bu ay" value={thisMonth} />
-        <StatCard label="Kazanma oranı" value={`${winRate}%`} />
       </SimpleGrid>
       <Title order={4}>Son Teklifler</Title>
       <Table>
@@ -66,8 +60,7 @@ export function Dashboard() {
           <Table.Tr>
             <Table.Th>{tr.customer.singular}</Table.Th>
             <Table.Th>{tr.proposal.title}</Table.Th>
-            <Table.Th>{tr.proposal.status}</Table.Th>
-            <Table.Th>{tr.proposal.total}</Table.Th>
+            <Table.Th>Etkileşim</Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
@@ -75,14 +68,9 @@ export function Dashboard() {
             <Table.Tr key={p.id}>
               <Table.Td>{p.customer_name}</Table.Td>
               <Table.Td>
-                <Link to={`/proposals/${p.id}`}>{p.title}</Link>
+                <Link to={`/proposals/${p.id}/view`}>{p.title}</Link>
               </Table.Td>
-              <Table.Td>
-                <Badge>{tr.proposal.statuses[p.status]}</Badge>
-              </Table.Td>
-              <Table.Td>
-                {p.total_amount.toLocaleString("tr-TR")} {p.currency}
-              </Table.Td>
+              <Table.Td>{p.interaction_count}</Table.Td>
             </Table.Tr>
           ))}
         </Table.Tbody>

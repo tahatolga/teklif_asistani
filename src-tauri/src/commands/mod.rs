@@ -1,3 +1,4 @@
+pub mod costs;
 pub mod customers;
 pub mod proposals;
 pub mod parameters;

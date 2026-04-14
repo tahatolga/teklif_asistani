@@ -1,7 +1,6 @@
 pub mod error;
 pub mod models;
 pub mod storage;
-pub mod validation;
 pub mod state;
 pub mod commands;
 
@@ -37,13 +36,16 @@ pub fn run() {
             commands::parameters::upsert_parameter,
             commands::parameters::delete_parameter,
             commands::parameters::reorder_parameters,
+            commands::parameters::ensure_parameter,
+            commands::costs::get_costs,
+            commands::costs::save_costs,
             commands::proposals::list_proposals,
             commands::proposals::get_proposal,
             commands::proposals::create_proposal,
             commands::proposals::update_proposal,
             commands::proposals::delete_proposal,
-            commands::proposals::get_field_history,
-            commands::proposals::get_prefill_values,
+            commands::proposals::upload_attachment,
+            commands::proposals::open_attachment,
             commands::backup::create_backup,
             commands::backup::list_backups,
             commands::backup::delete_backup,

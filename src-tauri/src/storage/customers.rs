@@ -9,7 +9,12 @@ pub fn create(paths: &DataPaths, input: CustomerInput) -> AppResult<Customer> {
     if input.name.trim().is_empty() {
         return Err(AppError::Validation {
             field: "name".into(),
-            message: "Müşteri adı gerekli".into(),
+            message: "Firma adı gerekli".into(),
+        });
+    }
+    if name_exists(paths, &input.name, None)? {
+        return Err(AppError::Conflict {
+            message: "Bu firma adıyla kayıtlı bir müşteri zaten var".into(),
         });
     }
     std::fs::create_dir_all(paths.customers_dir())?;
@@ -46,6 +51,17 @@ pub fn get(paths: &DataPaths, id: &str) -> AppResult<Customer> {
 
 pub fn update(paths: &DataPaths, id: &str, input: CustomerInput) -> AppResult<Customer> {
     let mut existing = get(paths, id)?;
+    if input.name.trim().is_empty() {
+        return Err(AppError::Validation {
+            field: "name".into(),
+            message: "Firma adı gerekli".into(),
+        });
+    }
+    if name_exists(paths, &input.name, Some(id))? {
+        return Err(AppError::Conflict {
+            message: "Bu firma adıyla kayıtlı başka bir müşteri var".into(),
+        });
+    }
     existing.name = input.name;
     existing.contact_person = input.contact_person;
     existing.email = input.email;
@@ -98,6 +114,25 @@ pub fn list(paths: &DataPaths) -> AppResult<Vec<CustomerSummary>> {
     }
     out.sort_by(|a, b| a.name.cmp(&b.name));
     Ok(out)
+}
+
+fn name_exists(paths: &DataPaths, name: &str, exclude_id: Option<&str>) -> AppResult<bool> {
+    let dir = paths.customers_dir();
+    if !dir.exists() { return Ok(false); }
+    let target = name.trim().to_lowercase();
+    for entry in std::fs::read_dir(&dir)? {
+        let entry = entry?;
+        if !entry.file_type()?.is_dir() { continue; }
+        let id = entry.file_name().to_string_lossy().to_string();
+        if exclude_id.map_or(false, |x| x == id) { continue; }
+        let cj = paths.customer_json(&id);
+        if !cj.exists() { continue; }
+        let customer: Customer = read_json(&cj)?;
+        if customer.name.trim().to_lowercase() == target {
+            return Ok(true);
+        }
+    }
+    Ok(false)
 }
 
 fn proposal_stats(paths: &DataPaths, customer_id: &str) -> (u32, Option<chrono::DateTime<chrono::Utc>>) {
@@ -157,12 +192,26 @@ mod tests {
     }
 
     #[test]
-    fn create_dedupes_slug() {
+    fn create_dedupes_slug_on_distinct_names() {
         let dir = tempdir().unwrap();
         let paths = DataPaths::new(dir.path());
         let a = create(&paths, input("ACME")).unwrap();
-        let b = create(&paths, input("ACME")).unwrap();
+        let b = create(&paths, input("acme ")).unwrap_err();
         assert_eq!(a.id, "acme");
-        assert_eq!(b.id, "acme-2");
+        assert!(matches!(b, AppError::Conflict { .. }));
+        let c = create(&paths, input("ACME Ltd")).unwrap();
+        assert_eq!(c.id, "acme-ltd");
+    }
+
+    #[test]
+    fn update_blocks_duplicate_name() {
+        let dir = tempdir().unwrap();
+        let paths = DataPaths::new(dir.path());
+        let a = create(&paths, input("Alpha")).unwrap();
+        let b = create(&paths, input("Beta")).unwrap();
+        let err = update(&paths, &b.id, input("alpha")).unwrap_err();
+        assert!(matches!(err, AppError::Conflict { .. }));
+        let ok = update(&paths, &a.id, input("Alpha")).unwrap();
+        assert_eq!(ok.name, "Alpha");
     }
 }

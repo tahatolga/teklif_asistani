@@ -45,6 +45,17 @@ export function ParameterFormModal({
   });
 
   useEffect(() => {
+    if (!opened) return;
+    const next: Parameter = initial ?? {
+      key: "", label: "", description: "", type: "text",
+      options: [], unit: null, min: null, max: null,
+      max_length: null, required: false, order: nextOrder,
+    };
+    form.setValues(next);
+    form.resetDirty(next);
+  }, [opened, initial]);
+
+  useEffect(() => {
     if (!initial && form.values.key === "" && form.values.label) {
       form.setFieldValue("key", slugify(form.values.label));
     }

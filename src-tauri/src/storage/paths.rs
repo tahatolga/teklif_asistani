@@ -14,6 +14,7 @@ impl DataPaths {
     pub fn app_json(&self) -> PathBuf { self.root.join("app.json") }
     pub fn parameters_json(&self) -> PathBuf { self.root.join("parameters.json") }
     pub fn settings_json(&self) -> PathBuf { self.root.join("settings.json") }
+    pub fn costs_json(&self) -> PathBuf { self.root.join("costs.json") }
     pub fn customers_dir(&self) -> PathBuf { self.root.join("customers") }
     pub fn backups_dir(&self) -> PathBuf { self.root.join("backups") }
     pub fn logs_dir(&self) -> PathBuf { self.root.join("logs") }

@@ -1,7 +1,7 @@
 import { AppShell as MShell, NavLink, Title } from "@mantine/core";
 import {
   IconDashboard, IconUsers, IconFileText, IconSettings,
-  IconAdjustments, IconArchive,
+  IconAdjustments, IconArchive, IconCoin,
 } from "@tabler/icons-react";
 import { NavLink as RLink, Outlet, useLocation } from "react-router-dom";
 import { tr } from "../lib/i18n/tr";
@@ -11,6 +11,7 @@ const items = [
   { to: "/customers", label: tr.nav.customers, icon: IconUsers },
   { to: "/proposals", label: tr.nav.proposals, icon: IconFileText },
   { to: "/parameters", label: tr.nav.parameters, icon: IconAdjustments },
+  { to: "/costs", label: tr.nav.costs, icon: IconCoin },
   { to: "/backup", label: tr.nav.backup, icon: IconArchive },
   { to: "/settings", label: tr.nav.settings, icon: IconSettings },
 ];

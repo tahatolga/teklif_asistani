@@ -1,9 +1,9 @@
 import {
-  ActionIcon, Badge, Button, Chip, Group, Select, Stack, Table,
-  Text, TextInput, Title,
+  ActionIcon, Button, Group, Select, Stack, Table, Text, TextInput, Title,
 } from "@mantine/core";
-import { DatePickerInput } from "@mantine/dates";
-import { IconEdit, IconPlus, IconSearch, IconTrash } from "@tabler/icons-react";
+import {
+  IconEdit, IconEye, IconPlus, IconSearch, IconTrash,
+} from "@tabler/icons-react";
 import { modals } from "@mantine/modals";
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,27 +11,20 @@ import { api } from "../../lib/api";
 import { showError, showSuccess } from "../../lib/errors";
 import { tr } from "../../lib/i18n/tr";
 import type {
-  CustomerSummary, ProposalFilter, ProposalStatus, ProposalSummary,
+  CustomerSummary, ProposalFilter, ProposalSummary,
 } from "../../types";
-
-const statuses: ProposalStatus[] = [
-  "taslak", "gonderildi", "kazanildi", "kaybedildi", "beklemede",
-];
 
 export function ProposalsList() {
   const [rows, setRows] = useState<ProposalSummary[]>([]);
   const [customers, setCustomers] = useState<CustomerSummary[]>([]);
   const [filter, setFilter] = useState<ProposalFilter>({});
   const [search, setSearch] = useState("");
-  const [dates, setDates] = useState<[Date | null, Date | null]>([null, null]);
   const nav = useNavigate();
 
   const load = () => {
     const f: ProposalFilter = {
       ...filter,
       search: search.trim() || null,
-      date_from: dates[0] ? dates[0].toISOString() : null,
-      date_to: dates[1] ? dates[1].toISOString() : null,
     };
     api.listProposals(f).then(setRows).catch(showError);
   };
@@ -40,7 +33,7 @@ export function ProposalsList() {
   useEffect(() => {
     const t = setTimeout(load, 200);
     return () => clearTimeout(t);
-  }, [filter, search, dates]);
+  }, [filter, search]);
 
   const del = (id: string, title: string) => {
     modals.openConfirmModal({
@@ -78,65 +71,51 @@ export function ProposalsList() {
           onChange={(v) => setFilter({ ...filter, customer_id: v })}
           clearable
         />
-        <DatePickerInput type="range"
-          placeholder="Tarih aralığı"
-          value={dates}
-          onChange={(v) => setDates(v as [Date | null, Date | null])}
-          clearable
-        />
       </Group>
-      <Chip.Group multiple={false}
-        value={filter.status ?? ""}
-        onChange={(v) =>
-          setFilter({ ...filter, status: (v as ProposalStatus) || null })}>
-        <Group gap="xs">
-          <Chip value="">Tümü</Chip>
-          {statuses.map((s) => (
-            <Chip key={s} value={s}>{tr.proposal.statuses[s]}</Chip>
-          ))}
-        </Group>
-      </Chip.Group>
       <Table highlightOnHover>
         <Table.Thead>
           <Table.Tr>
-            <Table.Th>{tr.proposal.createdAt}</Table.Th>
+            <Table.Th>Son Güncelleme</Table.Th>
             <Table.Th>{tr.customer.singular}</Table.Th>
             <Table.Th>{tr.proposal.title}</Table.Th>
-            <Table.Th>{tr.proposal.status}</Table.Th>
-            <Table.Th>{tr.proposal.total}</Table.Th>
+            <Table.Th>Etkileşim</Table.Th>
             <Table.Th></Table.Th>
           </Table.Tr>
         </Table.Thead>
         <Table.Tbody>
           {rows.length === 0 && (
             <Table.Tr>
-              <Table.Td colSpan={6}>
+              <Table.Td colSpan={5}>
                 <Text c="dimmed" ta="center">{tr.common.empty}</Text>
               </Table.Td>
             </Table.Tr>
           )}
           {rows.map((r) => (
             <Table.Tr key={r.id}>
-              <Table.Td>{new Date(r.created_at).toLocaleDateString("tr-TR")}</Table.Td>
+              <Table.Td>
+                {new Date(r.updated_at).toLocaleDateString("tr-TR")}
+              </Table.Td>
               <Table.Td>
                 <Link to={`/customers/${r.customer_id}`}>{r.customer_name}</Link>
               </Table.Td>
               <Table.Td>
-                <Link to={`/proposals/${r.id}`}>{r.title}</Link>
+                <Link to={`/proposals/${r.id}/view`}>{r.title}</Link>
               </Table.Td>
-              <Table.Td>
-                <Badge>{tr.proposal.statuses[r.status]}</Badge>
-              </Table.Td>
-              <Table.Td>
-                {r.total_amount.toLocaleString("tr-TR")} {r.currency}
-              </Table.Td>
+              <Table.Td>{r.interaction_count}</Table.Td>
               <Table.Td>
                 <Group gap="xs">
                   <ActionIcon variant="subtle"
+                    title="Görüntüle"
+                    onClick={() => nav(`/proposals/${r.id}/view`)}>
+                    <IconEye size={16} />
+                  </ActionIcon>
+                  <ActionIcon variant="subtle"
+                    title={tr.common.edit}
                     onClick={() => nav(`/proposals/${r.id}`)}>
                     <IconEdit size={16} />
                   </ActionIcon>
                   <ActionIcon variant="subtle" color="red"
+                    title={tr.common.delete}
                     onClick={() => del(r.id, r.title)}>
                     <IconTrash size={16} />
                   </ActionIcon>

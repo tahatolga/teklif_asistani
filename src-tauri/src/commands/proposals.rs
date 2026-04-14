@@ -1,19 +1,9 @@
-use crate::error::AppResult;
+use crate::error::{AppError, AppResult};
 use crate::models::proposal::{
     Proposal, ProposalFilter, ProposalInput, ProposalSummary,
 };
 use crate::state::AppState;
-use serde::Serialize;
-use serde_json::Value;
-use std::collections::HashMap;
 use tauri::State;
-
-#[derive(Serialize)]
-pub struct FieldHistoryEntry {
-    pub value: Value,
-    pub frequency: u32,
-    pub last_used_at: chrono::DateTime<chrono::Utc>,
-}
 
 #[tauri::command]
 pub fn list_proposals(
@@ -34,10 +24,7 @@ pub fn create_proposal(
     input: ProposalInput,
 ) -> AppResult<Proposal> {
     let _w = state.write_lock.lock().unwrap();
-    state.with_paths(|p| {
-        let catalog = crate::storage::parameters::load(p)?;
-        crate::storage::proposals::create(p, &catalog, input)
-    })
+    state.with_paths(|p| crate::storage::proposals::create(p, input))
 }
 
 #[tauri::command]
@@ -47,10 +34,7 @@ pub fn update_proposal(
     input: ProposalInput,
 ) -> AppResult<Proposal> {
     let _w = state.write_lock.lock().unwrap();
-    state.with_paths(|p| {
-        let catalog = crate::storage::parameters::load(p)?;
-        crate::storage::proposals::update(p, &catalog, &id, input)
-    })
+    state.with_paths(|p| crate::storage::proposals::update(p, &id, input))
 }
 
 #[tauri::command]
@@ -60,27 +44,70 @@ pub fn delete_proposal(state: State<'_, AppState>, id: String) -> AppResult<()> 
 }
 
 #[tauri::command]
-pub fn get_field_history(
+pub fn open_attachment(
     state: State<'_, AppState>,
-    key: String,
-    limit: usize,
-) -> AppResult<Vec<FieldHistoryEntry>> {
-    state.with_paths(|p| {
-        Ok(crate::storage::proposals::field_history(p, &key, limit)?
-            .into_iter()
-            .map(|(value, frequency, last_used_at)| FieldHistoryEntry {
-                value, frequency, last_used_at,
-            })
-            .collect())
+    rel_path: String,
+) -> AppResult<()> {
+    state.with_paths(|paths| {
+        let full = paths.root().join(&rel_path);
+        if !full.exists() {
+            return Err(AppError::NotFound {
+                entity: "file".into(),
+                id: rel_path.clone(),
+            });
+        }
+        #[cfg(target_os = "windows")]
+        {
+            std::process::Command::new("cmd")
+                .args(["/C", "start", "", full.to_string_lossy().as_ref()])
+                .spawn()
+                .map_err(|e| AppError::Io { message: e.to_string() })?;
+        }
+        #[cfg(not(target_os = "windows"))]
+        {
+            std::process::Command::new("xdg-open")
+                .arg(full.as_os_str())
+                .spawn()
+                .map_err(|e| AppError::Io { message: e.to_string() })?;
+        }
+        Ok(())
     })
 }
 
 #[tauri::command]
-pub fn get_prefill_values(
+pub fn upload_attachment(
     state: State<'_, AppState>,
-    customer_id: Option<String>,
-) -> AppResult<HashMap<String, Value>> {
-    state.with_paths(|p| {
-        crate::storage::proposals::prefill_values(p, customer_id.as_deref())
+    proposal_id: String,
+    interaction_id: String,
+    source_path: String,
+) -> AppResult<String> {
+    let _w = state.write_lock.lock().unwrap();
+    state.with_paths(|paths| {
+        let proposal = crate::storage::proposals::get(paths, &proposal_id)?;
+        let source = std::path::PathBuf::from(&source_path);
+        if !source.exists() {
+            return Err(AppError::NotFound {
+                entity: "file".into(),
+                id: source_path.clone(),
+            });
+        }
+        let filename = source.file_name()
+            .ok_or_else(|| AppError::Validation {
+                field: "source_path".into(),
+                message: "Geçersiz dosya yolu".into(),
+            })?
+            .to_string_lossy()
+            .to_string();
+        let dest_dir = paths
+            .attachments_dir(&proposal.customer_id)
+            .join(&interaction_id);
+        std::fs::create_dir_all(&dest_dir)?;
+        let dest = dest_dir.join(&filename);
+        std::fs::copy(&source, &dest)?;
+        let rel = format!(
+            "customers/{}/attachments/{}/{}",
+            proposal.customer_id, interaction_id, filename
+        );
+        Ok(rel)
     })
 }

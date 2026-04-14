@@ -22,13 +22,6 @@ export interface ParameterCatalog {
   parameters: Parameter[];
 }
 
-export interface ParameterSnapshot {
-  key: string;
-  label: string;
-  type: ParameterType;
-  unit: string | null;
-}
-
 export interface Customer {
   id: string;
   schema_version: number;
@@ -64,32 +57,61 @@ export interface CustomerSummary {
   last_activity: string | null;
 }
 
-export type ProposalStatus =
-  | "taslak" | "gonderildi" | "kazanildi" | "kaybedildi" | "beklemede";
+export type InteractionDirection = "incoming" | "outgoing" | "internal";
+
+export type RowValueType = "text" | "textarea" | "number" | "price" | "file";
+
+export interface CostItem {
+  id: string;
+  label: string;
+  amount: number;
+  currency: string;
+  notes: string;
+  updated_at: string;
+}
+
+export interface CostCatalog {
+  schema_version: number;
+  items: CostItem[];
+  updated_at: string;
+}
+
+export interface InteractionRow {
+  key: string;
+  value: unknown;
+  value_type: RowValueType;
+}
+
+export interface CostLine {
+  cost_id: string;
+  quantity: number;
+}
+
+export interface Interaction {
+  id: string;
+  direction: InteractionDirection;
+  created_at: string;
+  rows: InteractionRow[];
+}
 
 export interface Proposal {
   id: string;
   schema_version: number;
   customer_id: string;
   title: string;
-  status: ProposalStatus;
+  notes: string;
   created_at: string;
   updated_at: string;
-  total_amount: number;
-  currency: string;
-  notes: string;
-  custom_fields: Record<string, unknown>;
-  parameter_snapshot: ParameterSnapshot[];
+  interactions: Interaction[];
+  cost_lines: CostLine[];
 }
 
 export interface ProposalInput {
   customer_id: string;
   title: string;
-  status: ProposalStatus;
-  total_amount: number;
-  currency: string;
   notes: string;
-  custom_fields: Record<string, unknown>;
+  interactions: Interaction[];
+  cost_lines: CostLine[];
 }
 
 export interface ProposalSummary {
@@ -97,24 +119,14 @@ export interface ProposalSummary {
   customer_id: string;
   customer_name: string;
   title: string;
-  status: ProposalStatus;
-  total_amount: number;
-  currency: string;
   created_at: string;
+  updated_at: string;
+  interaction_count: number;
 }
 
 export interface ProposalFilter {
   customer_id?: string | null;
-  status?: ProposalStatus | null;
-  date_from?: string | null;
-  date_to?: string | null;
   search?: string | null;
-}
-
-export interface FieldHistoryEntry {
-  value: unknown;
-  frequency: number;
-  last_used_at: string;
 }
 
 export interface Settings {

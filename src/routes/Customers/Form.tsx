@@ -26,11 +26,15 @@ export function CustomerForm() {
 
   useEffect(() => {
     if (id) {
-      api.getCustomer(id).then((c) => form.setValues({
-        name: c.name, contact_person: c.contact_person,
-        email: c.email, phone: c.phone, address: c.address,
-        tax_office: c.tax_office, tax_no: c.tax_no, notes: c.notes,
-      })).catch(showError);
+      api.getCustomer(id).then((c) => {
+        const vals: CustomerInput = {
+          name: c.name, contact_person: c.contact_person,
+          email: c.email, phone: c.phone, address: c.address,
+          tax_office: c.tax_office, tax_no: c.tax_no, notes: c.notes,
+        };
+        form.setValues(vals);
+        form.resetDirty(vals);
+      }).catch(showError);
     }
   }, [id]);
 

@@ -18,7 +18,9 @@ import { CustomerDetail } from "./routes/Customers/Detail";
 import { CustomerForm } from "./routes/Customers/Form";
 import { ProposalsList } from "./routes/Proposals/List";
 import { ProposalForm } from "./routes/Proposals/Form";
+import { ProposalDetail } from "./routes/Proposals/Detail";
 import { ParametersPage } from "./routes/Parameters";
+import { CostsPage } from "./routes/Costs";
 import { BackupPage } from "./routes/Backup";
 import { SettingsPage } from "./routes/Settings";
 import "@mantine/core/styles.css";
@@ -36,8 +38,10 @@ const router = createBrowserRouter(
         <Route path="/customers/:id/edit" element={<CustomerForm />} />
         <Route path="/proposals" element={<ProposalsList />} />
         <Route path="/proposals/new" element={<ProposalForm />} />
+        <Route path="/proposals/:id/view" element={<ProposalDetail />} />
         <Route path="/proposals/:id" element={<ProposalForm />} />
         <Route path="/parameters" element={<ParametersPage />} />
+        <Route path="/costs" element={<CostsPage />} />
         <Route path="/backup" element={<BackupPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/" />} />

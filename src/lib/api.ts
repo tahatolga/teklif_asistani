@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/core";
 import type {
-  AppInfo, BackupEntry, Customer, CustomerInput, CustomerSummary,
-  FieldHistoryEntry, Parameter, ParameterCatalog, Proposal,
+  AppInfo, BackupEntry, CostCatalog, CostItem, Customer, CustomerInput,
+  CustomerSummary, Parameter, ParameterCatalog, Proposal,
   ProposalFilter, ProposalInput, ProposalSummary, RestoreMode,
   Settings, SettingsInput,
 } from "../types";
@@ -24,6 +24,12 @@ export const api = {
     call<ParameterCatalog>("delete_parameter", { key }),
   reorderParameters: (keys: string[]) =>
     call<ParameterCatalog>("reorder_parameters", { keys }),
+  ensureParameter: (key: string) =>
+    call<ParameterCatalog>("ensure_parameter", { key }),
+
+  getCosts: () => call<CostCatalog>("get_costs"),
+  saveCosts: (items: CostItem[]) =>
+    call<CostCatalog>("save_costs", { items }),
 
   listProposals: (filter: ProposalFilter) =>
     call<ProposalSummary[]>("list_proposals", { filter }),
@@ -33,11 +39,12 @@ export const api = {
   updateProposal: (id: string, input: ProposalInput) =>
     call<Proposal>("update_proposal", { id, input }),
   deleteProposal: (id: string) => call<void>("delete_proposal", { id }),
-  getFieldHistory: (key: string, limit: number) =>
-    call<FieldHistoryEntry[]>("get_field_history", { key, limit }),
-  getPrefillValues: (customerId: string | null) =>
-    call<Record<string, unknown>>("get_prefill_values",
-      { customerId: customerId ?? null }),
+  uploadAttachment: (proposalId: string, interactionId: string, sourcePath: string) =>
+    call<string>("upload_attachment", {
+      proposalId, interactionId, sourcePath,
+    }),
+  openAttachment: (relPath: string) =>
+    call<void>("open_attachment", { relPath }),
 
   createBackup: () => call<BackupEntry>("create_backup"),
   listBackups: () => call<BackupEntry[]>("list_backups"),

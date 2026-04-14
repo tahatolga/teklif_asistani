@@ -13,7 +13,13 @@
       "Bash(rm -rf \"/c/Users/Tolga/.cargo-target/fikstur_teklif\")",
       "Bash(git init:*)",
       "Bash(git add:*)",
-      "Bash(git -c user.email=\"dev@fikstur.local\" -c user.name=\"Fikstur Dev\" commit -m \"chore: scaffold tauri + react + deps\")"
+      "Bash(git -c user.email=\"dev@fikstur.local\" -c user.name=\"Fikstur Dev\" commit -m \"chore: scaffold tauri + react + deps\")",
+      "Bash(cargo test:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm test:*)",
+      "Bash(wc -l src/routes/Customers/*.tsx)",
+      "Bash(npm install:*)",
+      "Bash(grep -rn \"useBlocker\" node_modules/react-router/dist/*.d.ts node_modules/react-router-dom/dist/*.d.ts)"
     ]
   }
 }
