@@ -21,8 +21,17 @@
       "csp": null
     }
   },
+  "plugins": {
+    "updater": {
+      "endpoints": [
+        "https://github.com/tahatolga/teklif_asistani/releases/latest/download/latest.json"
+      ],
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDZERUNCRDcxMzgyM0VGQ0YKUldUUDd5TTRjYjNzYmJzT29DblV2OGlicTRTZHhqa3d3NmZWaUMrQWNadkc5dEwzTjdndzMwWmEK"
+    }
+  },
   "bundle": {
     "active": true,
+    "createUpdaterArtifacts": true,
     "targets": ["nsis"],
     "icon": [
       "icons/32x32.png",
@@ -32,6 +41,9 @@
       "icons/icon.ico"
     ],
     "windows": {
+      "webviewInstallMode": {
+        "type": "offlineInstaller"
+      },
       "nsis": {
         "installMode": "currentUser",
         "languages": ["Turkish", "English"]

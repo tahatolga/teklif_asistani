@@ -1,5 +1,8 @@
 import { Button, Group, Paper, Select, Stack, Switch, TextInput, Title, Text } from "@mantine/core";
 import { open } from "@tauri-apps/plugin-dialog";
+import { check } from "@tauri-apps/plugin-updater";
+import { relaunch } from "@tauri-apps/plugin-process";
+import { modals } from "@mantine/modals";
 import { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { showError, showSuccess } from "../lib/errors";
@@ -10,11 +13,45 @@ import type { AppInfo } from "../types";
 export function SettingsPage() {
   const { settings, load, update } = useSettings();
   const [info, setInfo] = useState<AppInfo | null>(null);
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     load().catch(showError);
     api.getAppInfo().then(setInfo).catch(showError);
   }, []);
+
+  const checkForUpdates = async () => {
+    setChecking(true);
+    try {
+      const update = await check();
+      if (!update) {
+        showSuccess("En son sürümü kullanıyorsunuz");
+        return;
+      }
+      modals.openConfirmModal({
+        title: tr.update.available,
+        children: (
+          <Stack gap="xs">
+            <Text size="sm">
+              Yeni sürüm: <b>{update.version}</b>
+              {info ? ` (şu an ${info.version})` : ""}
+            </Text>
+            {update.body && (
+              <Text size="sm" c="dimmed">{update.body}</Text>
+            )}
+          </Stack>
+        ),
+        labels: { confirm: tr.update.install, cancel: tr.update.later },
+        onConfirm: async () => {
+          try {
+            await update.downloadAndInstall();
+            await relaunch();
+          } catch (err) { showError(err); }
+        },
+      });
+    } catch (err) { showError(err); }
+    finally { setChecking(false); }
+  };
 
   if (!settings) return <Text>{tr.common.loading}</Text>;
 
@@ -51,11 +88,17 @@ export function SettingsPage() {
             onChange={(e) =>
               update({ auto_update_enabled: e.currentTarget.checked })}
           />
-          {info && (
-            <Text size="sm" c="dimmed">
-              {tr.settings.version}: {info.version}
-            </Text>
-          )}
+          <Group>
+            <Button variant="default" onClick={checkForUpdates}
+              loading={checking}>
+              {tr.settings.checkNow}
+            </Button>
+            {info && (
+              <Text size="sm" c="dimmed">
+                {tr.settings.version}: {info.version}
+              </Text>
+            )}
+          </Group>
         </Stack>
       </Paper>
     </Stack>

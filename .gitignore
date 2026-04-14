@@ -10,7 +10,12 @@ lerna-debug.log*
 node_modules
 dist
 dist-ssr
+dist-release
 *.local
+
+# Tauri signing keys (never commit)
+*.key
+*.key.pub
 
 # Editor directories and files
 .vscode/*
